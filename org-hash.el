@@ -46,7 +46,7 @@
     (const :tag "SHA-2 (SHA-512), produces a 128-character signature" sha512)
     (const :tag "SHA-2 (SHA512-256), produces a 64-character signature"
            sha512_256))
-  :group 'org-smart-capture)
+  :group 'org-hash)
 
 (defsubst org-hash-property (&optional algorithm)
   "Return the Org property name for storing hash values.
@@ -59,7 +59,7 @@ If nil, defaults to the value of `org-hash-algorithm'.
 Example:
   (org-hash-property \"sha256\") => \"HASH_sha256\"
   ;; when `org-hash-algorithm' is \"SHA256\"...
-  (org-hash-property nil)        => \"HASH_sha256\""
+  (org-hash-property nil)        => \"HASH_sha512_256\""
   (format "HASH_%s" (or algorithm org-hash-algorithm)))
 
 (defun org-hash--entry (&optional pos algorithm)
@@ -129,6 +129,11 @@ produced at that point."
            (org-hash-confirm (point) algorithm t)
          (org-hash-update (point) algorithm)))))
 
+(defcustom org-hash-archive-keep-properties '("ID" "CREATED")
+  "Properties that will be retained after an Org-entry is stored."
+  :type '(repeat string)
+  :group 'org-hash)
+
 (defun org-hash-archive (&optional pos algorithm)
   "Store the Org-entry at POS using ALGORITHM to the hash-store."
   (interactive)
@@ -147,11 +152,12 @@ produced at that point."
              (body (buffer-substring-no-properties beg end))
              (hash-store-algorithm algo)
              (hash (hash-store-save body))
-             (id (org-entry-get pos "ID"))
-             (created (org-entry-get pos "CREATED")))
+             (saved (mapcar (lambda (prop)
+                              (cons prop (org-entry-get pos prop)))
+                            org-hash-archive-keep-properties)))
         (delete-region (1+ (line-end-position)) end)
-        (org-entry-put pos "ID" id)
-        (org-entry-put pos "CREATED" created)
+        (dolist (prop saved)
+          (org-entry-put pos (car prop) (cdr prop)))
         (org-entry-put pos property hash)
         (org-archive-set-tag)
         (thread-last
