@@ -25,6 +25,32 @@
 
 ;;; Commentary:
 
+;; This library provides cryptographic integrity verification for Org-mode
+;; entries using content-based hashing. It allows users to:
+;;
+;; 1. Generate and store hashes of Org entries using various algorithms
+;; 2. Verify entry integrity by comparing stored hashes with current content
+;; 3. Archive entries into a hash-store while preserving selected metadata
+;; 4. Retrieve archived entries using their hash references
+;;
+;; The module integrates tightly with Org mode's entry manipulation API,
+;; providing seamless hashing capabilities through property fields. Entries
+;; can be archived to a content-addressable store (via hash-store.el
+;; integration) while retaining key metadata like ID and CREATED timestamps.
+;; The hash verification system supports automated checking against common
+;; integrity failures.
+;;
+;; Example usage:
+;; - Add `org-hash-update' to org-capture-finalize-hook
+;; - Use `org-hash-archive' to permanently store entries
+;; - Run `org-hash-confirm' to verify task integrity
+;; - Customize `org-hash-archive-keep-properties' to preserve additional
+;;   metadata
+;;
+;; Compatibility: Designed for Org 9.5+ with Emacs 29+, using lexical binding
+;; and modern Org API features. Requires hash-store.el for archiving
+;; functionality.
+
 ;;; Code:
 
 (require 'cl-lib)
